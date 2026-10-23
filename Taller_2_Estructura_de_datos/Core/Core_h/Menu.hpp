@@ -3,9 +3,11 @@
 #include "SistemaHospital.hpp"
 #include <string>
 
+class SistemaHospital;
+
 class Menu {
 private:
-    SistemaHospital sistema;
+    SistemaHospital* sistema;
 
     void mostrarMenuPrincipal();
     void opcionAtender();
