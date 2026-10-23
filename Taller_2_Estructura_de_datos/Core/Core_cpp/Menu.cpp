@@ -21,10 +21,10 @@ void Menu::mostrarMenuPrincipal() {
 }
 
 void Menu::iniciar() {
-    bool cargado = sistema.cargarDatos("Pacientes.txt");
+    bool cargado = sistema->cargarDatos("Pacientes.txt");
 
     if (!cargado) {
-        cargado = sistema.cargarDatos("../Pacientes.txt");
+        cargado = sistema->cargarDatos("../Pacientes.txt");
     }
 
     if (!cargado) {
@@ -90,11 +90,11 @@ void Menu::opcionAtender() {
     cout << "=== ATENDIENDO PACIENTES ===" << endl;
 
     // Atender todos los pacientes que estén en la Queue.
-    sistema.atenderPacientes();
+    sistema->atenderPacientes();
 }
 
 void Menu::opcionVerDepartamentos() {
-    sistema.mostrarDepartamentos();
+    sistema->mostrarDepartamentos();
 }
 
 void Menu::opcionBuscarPaciente() {
@@ -116,5 +116,5 @@ void Menu::opcionBuscarPaciente() {
 
     cout << "Buscando en AVL..." << endl;
 
-    sistema.buscarPaciente(consulta);
+    sistema->buscarPaciente(consulta);
 }
