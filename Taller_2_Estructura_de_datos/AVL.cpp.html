@@ -1,0 +1,653 @@
+<html>
+<head>
+<title>AVL.cpp</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #b3ae60;}
+.s1 { color: #bcbec4;}
+.s2 { color: #6aab73;}
+.s3 { color: #cf8e6d;}
+.s4 { color: #bcbec4;}
+.s5 { color: #7a7e85;}
+.s6 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#191a1c">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+AVL.cpp</font>
+</center></td></tr></table>
+<pre><span class="s0">#include </span><span class="s2">&quot;../Data_structures_h//AVL.hpp&quot;</span>
+
+<span class="s0">#include </span><span class="s2">&lt;algorithm&gt;</span>
+<span class="s0">#include </span><span class="s2">&lt;iostream&gt;</span>
+
+<span class="s3">using namespace </span><span class="s1">std</span><span class="s4">;</span>
+
+<span class="s5">// Constructor</span>
+<span class="s1">AVL::AVL</span><span class="s4">() {</span>
+    <span class="s1">raiz </span><span class="s4">= </span><span class="s3">nullptr</span><span class="s4">;</span>
+<span class="s4">}</span>
+
+<span class="s5">// Constructor de copia: realiza una copia profunda</span>
+<span class="s1">AVL::AVL</span><span class="s4">(</span><span class="s3">const </span><span class="s1">AVL</span><span class="s4">&amp; </span><span class="s1">otro</span><span class="s4">) {</span>
+    <span class="s1">raiz </span><span class="s4">= </span><span class="s1">copiar</span><span class="s4">(</span><span class="s1">otro</span><span class="s4">.</span><span class="s1">raiz</span><span class="s4">);</span>
+<span class="s4">}</span>
+
+<span class="s5">// Operador de asignación: evita compartir nodos entre árboles</span>
+<span class="s1">AVL</span><span class="s4">&amp; </span><span class="s1">AVL::</span><span class="s3">operator</span><span class="s4">=(</span><span class="s3">const </span><span class="s1">AVL</span><span class="s4">&amp; </span><span class="s1">otro</span><span class="s4">) {</span>
+    <span class="s3">if </span><span class="s4">(</span><span class="s3">this </span><span class="s4">!= &amp;</span><span class="s1">otro</span><span class="s4">) {</span>
+        <span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">nuevaRaiz </span><span class="s4">= </span><span class="s1">copiar</span><span class="s4">(</span><span class="s1">otro</span><span class="s4">.</span><span class="s1">raiz</span><span class="s4">);</span>
+
+        <span class="s1">liberar</span><span class="s4">(</span><span class="s1">raiz</span><span class="s4">);</span>
+        <span class="s1">raiz </span><span class="s4">= </span><span class="s1">nuevaRaiz</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s3">return </span><span class="s4">*</span><span class="s3">this</span><span class="s4">;</span>
+<span class="s4">}</span>
+
+<span class="s5">// Destructor</span>
+<span class="s1">AVL::~AVL</span><span class="s4">() {</span>
+    <span class="s1">clear</span><span class="s4">();</span>
+<span class="s4">}</span>
+
+<span class="s5">// ========================================</span>
+<span class="s5">// ALTURA Y FACTOR DE BALANCE</span>
+<span class="s5">// ========================================</span>
+
+<span class="s3">int </span><span class="s1">AVL::altura</span><span class="s4">(</span><span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">nodo</span><span class="s4">) </span><span class="s3">const </span><span class="s4">{</span>
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">nodo </span><span class="s4">== </span><span class="s3">nullptr</span><span class="s4">) {</span>
+        <span class="s3">return </span><span class="s6">0</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s3">return </span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getAltura</span><span class="s4">();</span>
+<span class="s4">}</span>
+
+<span class="s3">int </span><span class="s1">AVL::factorBalance</span><span class="s4">(</span><span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">nodo</span><span class="s4">) </span><span class="s3">const </span><span class="s4">{</span>
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">nodo </span><span class="s4">== </span><span class="s3">nullptr</span><span class="s4">) {</span>
+        <span class="s3">return </span><span class="s6">0</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s3">return </span><span class="s1">altura</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">())</span>
+         <span class="s4">- </span><span class="s1">altura</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">());</span>
+<span class="s4">}</span>
+
+<span class="s5">// ========================================</span>
+<span class="s5">// ROTACION SIMPLE A LA DERECHA</span>
+<span class="s5">// Caso LL</span>
+<span class="s5">// ========================================</span>
+
+<span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">AVL::rotacionDerecha</span><span class="s4">(</span><span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">nodo</span><span class="s4">) {</span>
+    <span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">nuevoPadre </span><span class="s4">= </span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">();</span>
+    <span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">subarbol </span><span class="s4">= </span><span class="s1">nuevoPadre</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">();</span>
+
+    <span class="s1">nuevoPadre</span><span class="s4">-&gt;</span><span class="s1">setDerecho</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">);</span>
+    <span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">setIzquierdo</span><span class="s4">(</span><span class="s1">subarbol</span><span class="s4">);</span>
+
+    <span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">setAltura</span><span class="s4">(</span>
+        <span class="s6">1 </span><span class="s4">+ </span><span class="s1">max</span><span class="s4">(</span>
+            <span class="s1">altura</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">()),</span>
+            <span class="s1">altura</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">())</span>
+        <span class="s4">)</span>
+    <span class="s4">);</span>
+
+    <span class="s1">nuevoPadre</span><span class="s4">-&gt;</span><span class="s1">setAltura</span><span class="s4">(</span>
+        <span class="s6">1 </span><span class="s4">+ </span><span class="s1">max</span><span class="s4">(</span>
+            <span class="s1">altura</span><span class="s4">(</span><span class="s1">nuevoPadre</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">()),</span>
+            <span class="s1">altura</span><span class="s4">(</span><span class="s1">nuevoPadre</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">())</span>
+        <span class="s4">)</span>
+    <span class="s4">);</span>
+
+    <span class="s3">return </span><span class="s1">nuevoPadre</span><span class="s4">;</span>
+<span class="s4">}</span>
+
+<span class="s5">// ========================================</span>
+<span class="s5">// ROTACION SIMPLE A LA IZQUIERDA</span>
+<span class="s5">// Caso RR</span>
+<span class="s5">// ========================================</span>
+
+<span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">AVL::rotacionIzquierda</span><span class="s4">(</span><span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">nodo</span><span class="s4">) {</span>
+    <span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">nuevoPadre </span><span class="s4">= </span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">();</span>
+    <span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">subarbol </span><span class="s4">= </span><span class="s1">nuevoPadre</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">();</span>
+
+    <span class="s1">nuevoPadre</span><span class="s4">-&gt;</span><span class="s1">setIzquierdo</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">);</span>
+    <span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">setDerecho</span><span class="s4">(</span><span class="s1">subarbol</span><span class="s4">);</span>
+
+    <span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">setAltura</span><span class="s4">(</span>
+        <span class="s6">1 </span><span class="s4">+ </span><span class="s1">max</span><span class="s4">(</span>
+            <span class="s1">altura</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">()),</span>
+            <span class="s1">altura</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">())</span>
+        <span class="s4">)</span>
+    <span class="s4">);</span>
+
+    <span class="s1">nuevoPadre</span><span class="s4">-&gt;</span><span class="s1">setAltura</span><span class="s4">(</span>
+        <span class="s6">1 </span><span class="s4">+ </span><span class="s1">max</span><span class="s4">(</span>
+            <span class="s1">altura</span><span class="s4">(</span><span class="s1">nuevoPadre</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">()),</span>
+            <span class="s1">altura</span><span class="s4">(</span><span class="s1">nuevoPadre</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">())</span>
+        <span class="s4">)</span>
+    <span class="s4">);</span>
+
+    <span class="s3">return </span><span class="s1">nuevoPadre</span><span class="s4">;</span>
+<span class="s4">}</span>
+
+<span class="s5">// ========================================</span>
+<span class="s5">// BALANCEAR UN NODO</span>
+<span class="s5">// Incluye LL, RR, LR y RL</span>
+<span class="s5">// ========================================</span>
+
+<span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">AVL::balancear</span><span class="s4">(</span><span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">nodo</span><span class="s4">) {</span>
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">nodo </span><span class="s4">== </span><span class="s3">nullptr</span><span class="s4">) {</span>
+        <span class="s3">return nullptr</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">setAltura</span><span class="s4">(</span>
+        <span class="s6">1 </span><span class="s4">+ </span><span class="s1">max</span><span class="s4">(</span>
+            <span class="s1">altura</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">()),</span>
+            <span class="s1">altura</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">())</span>
+        <span class="s4">)</span>
+    <span class="s4">);</span>
+
+    <span class="s3">int </span><span class="s1">balance </span><span class="s4">= </span><span class="s1">factorBalance</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">);</span>
+
+    <span class="s5">// Caso LL o LR: el lado izquierdo está pesado</span>
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">balance </span><span class="s4">&gt; </span><span class="s6">1</span><span class="s4">) {</span>
+        <span class="s3">if </span><span class="s4">(</span><span class="s1">factorBalance</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">()) &lt; </span><span class="s6">0</span><span class="s4">) {</span>
+            <span class="s5">// Caso LR: primero rotar a la izquierda</span>
+            <span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">setIzquierdo</span><span class="s4">(</span>
+                <span class="s1">rotacionIzquierda</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">())</span>
+            <span class="s4">);</span>
+        <span class="s4">}</span>
+
+        <span class="s5">// Caso LL o segunda rotación del caso LR</span>
+        <span class="s3">return </span><span class="s1">rotacionDerecha</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">);</span>
+    <span class="s4">}</span>
+
+    <span class="s5">// Caso RR o RL: el lado derecho está pesado</span>
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">balance </span><span class="s4">&lt; -</span><span class="s6">1</span><span class="s4">) {</span>
+        <span class="s3">if </span><span class="s4">(</span><span class="s1">factorBalance</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">()) &gt; </span><span class="s6">0</span><span class="s4">) {</span>
+            <span class="s5">// Caso RL: primero rotar a la derecha</span>
+            <span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">setDerecho</span><span class="s4">(</span>
+                <span class="s1">rotacionDerecha</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">())</span>
+            <span class="s4">);</span>
+        <span class="s4">}</span>
+
+        <span class="s5">// Caso RR o segunda rotación del caso RL</span>
+        <span class="s3">return </span><span class="s1">rotacionIzquierda</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">);</span>
+    <span class="s4">}</span>
+
+    <span class="s3">return </span><span class="s1">nodo</span><span class="s4">;</span>
+<span class="s4">}</span>
+
+<span class="s5">// ========================================</span>
+<span class="s5">// INSERTAR</span>
+<span class="s5">// El ID es la clave de ordenamiento</span>
+<span class="s5">// ========================================</span>
+
+<span class="s3">bool </span><span class="s1">AVL::insertar</span><span class="s4">(</span><span class="s3">const </span><span class="s1">Paciente</span><span class="s4">&amp; </span><span class="s1">paciente</span><span class="s4">) {</span>
+    <span class="s3">bool </span><span class="s1">insertado </span><span class="s4">= </span><span class="s3">false</span><span class="s4">;</span>
+
+    <span class="s1">raiz </span><span class="s4">= </span><span class="s1">insertar</span><span class="s4">(</span><span class="s1">raiz</span><span class="s4">, </span><span class="s1">paciente</span><span class="s4">, </span><span class="s1">insertado</span><span class="s4">);</span>
+
+    <span class="s3">return </span><span class="s1">insertado</span><span class="s4">;</span>
+<span class="s4">}</span>
+
+<span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">AVL::insertar</span><span class="s4">(</span>
+    <span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">nodo</span><span class="s4">,</span>
+    <span class="s3">const </span><span class="s1">Paciente</span><span class="s4">&amp; </span><span class="s1">paciente</span><span class="s4">,</span>
+    <span class="s3">bool</span><span class="s4">&amp; </span><span class="s1">insertado</span>
+<span class="s4">) {</span>
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">nodo </span><span class="s4">== </span><span class="s3">nullptr</span><span class="s4">) {</span>
+        <span class="s1">insertado </span><span class="s4">= </span><span class="s3">true</span><span class="s4">;</span>
+        <span class="s3">return new </span><span class="s1">NodoAVL</span><span class="s4">(</span><span class="s1">paciente</span><span class="s4">);</span>
+    <span class="s4">}</span>
+
+    <span class="s1">string idNuevo </span><span class="s4">= </span><span class="s1">paciente</span><span class="s4">.</span><span class="s1">getId</span><span class="s4">();</span>
+    <span class="s1">string idActual </span><span class="s4">= </span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getPaciente</span><span class="s4">().</span><span class="s1">getId</span><span class="s4">();</span>
+
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">idNuevo </span><span class="s4">&lt; </span><span class="s1">idActual</span><span class="s4">) {</span>
+        <span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">setIzquierdo</span><span class="s4">(</span>
+            <span class="s1">insertar</span><span class="s4">(</span>
+                <span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">(),</span>
+                <span class="s1">paciente</span><span class="s4">,</span>
+                <span class="s1">insertado</span>
+            <span class="s4">)</span>
+        <span class="s4">);</span>
+    <span class="s4">}</span>
+    <span class="s3">else if </span><span class="s4">(</span><span class="s1">idNuevo </span><span class="s4">&gt; </span><span class="s1">idActual</span><span class="s4">) {</span>
+        <span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">setDerecho</span><span class="s4">(</span>
+            <span class="s1">insertar</span><span class="s4">(</span>
+                <span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">(),</span>
+                <span class="s1">paciente</span><span class="s4">,</span>
+                <span class="s1">insertado</span>
+            <span class="s4">)</span>
+        <span class="s4">);</span>
+    <span class="s4">}</span>
+    <span class="s3">else </span><span class="s4">{</span>
+        <span class="s5">// No se aceptan IDs duplicados</span>
+        <span class="s3">return </span><span class="s1">nodo</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s3">return </span><span class="s1">balancear</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">);</span>
+<span class="s4">}</span>
+
+<span class="s5">// ========================================</span>
+<span class="s5">// BUSCAR POR ID</span>
+<span class="s5">// ========================================</span>
+
+<span class="s3">const </span><span class="s1">Paciente</span><span class="s4">* </span><span class="s1">AVL::buscarPorId</span><span class="s4">(</span>
+    <span class="s3">const </span><span class="s1">string</span><span class="s4">&amp; </span><span class="s1">id</span>
+<span class="s4">) </span><span class="s3">const </span><span class="s4">{</span>
+    <span class="s3">return </span><span class="s1">buscarPorId</span><span class="s4">(</span><span class="s1">raiz</span><span class="s4">, </span><span class="s1">id</span><span class="s4">);</span>
+<span class="s4">}</span>
+
+<span class="s3">const </span><span class="s1">Paciente</span><span class="s4">* </span><span class="s1">AVL::buscarPorId</span><span class="s4">(</span>
+    <span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">nodo</span><span class="s4">,</span>
+    <span class="s3">const </span><span class="s1">string</span><span class="s4">&amp; </span><span class="s1">id</span>
+<span class="s4">) </span><span class="s3">const </span><span class="s4">{</span>
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">nodo </span><span class="s4">== </span><span class="s3">nullptr</span><span class="s4">) {</span>
+        <span class="s3">return nullptr</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s1">string idActual </span><span class="s4">= </span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getPaciente</span><span class="s4">().</span><span class="s1">getId</span><span class="s4">();</span>
+
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">id </span><span class="s4">== </span><span class="s1">idActual</span><span class="s4">) {</span>
+        <span class="s3">return </span><span class="s4">&amp;</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getPaciente</span><span class="s4">();</span>
+    <span class="s4">}</span>
+
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">id </span><span class="s4">&lt; </span><span class="s1">idActual</span><span class="s4">) {</span>
+        <span class="s3">return </span><span class="s1">buscarPorId</span><span class="s4">(</span>
+            <span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">(),</span>
+            <span class="s1">id</span>
+        <span class="s4">);</span>
+    <span class="s4">}</span>
+
+    <span class="s3">return </span><span class="s1">buscarPorId</span><span class="s4">(</span>
+        <span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">(),</span>
+        <span class="s1">id</span>
+    <span class="s4">);</span>
+<span class="s4">}</span>
+
+<span class="s5">// ========================================</span>
+<span class="s5">// BUSCAR POR NOMBRE</span>
+<span class="s5">// Se revisan ambos subárboles porque el</span>
+<span class="s5">// árbol está ordenado por ID, no por nombre.</span>
+<span class="s5">// ========================================</span>
+
+<span class="s3">const </span><span class="s1">Paciente</span><span class="s4">* </span><span class="s1">AVL::buscarPorNombre</span><span class="s4">(</span>
+    <span class="s3">const </span><span class="s1">string</span><span class="s4">&amp; </span><span class="s1">nombre</span>
+<span class="s4">) </span><span class="s3">const </span><span class="s4">{</span>
+    <span class="s3">return </span><span class="s1">buscarPorNombre</span><span class="s4">(</span><span class="s1">raiz</span><span class="s4">, </span><span class="s1">nombre</span><span class="s4">);</span>
+<span class="s4">}</span>
+
+<span class="s3">const </span><span class="s1">Paciente</span><span class="s4">* </span><span class="s1">AVL::buscarPorNombre</span><span class="s4">(</span>
+    <span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">nodo</span><span class="s4">,</span>
+    <span class="s3">const </span><span class="s1">string</span><span class="s4">&amp; </span><span class="s1">nombre</span>
+<span class="s4">) </span><span class="s3">const </span><span class="s4">{</span>
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">nodo </span><span class="s4">== </span><span class="s3">nullptr</span><span class="s4">) {</span>
+        <span class="s3">return nullptr</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getPaciente</span><span class="s4">().</span><span class="s1">getNombre</span><span class="s4">() == </span><span class="s1">nombre</span><span class="s4">) {</span>
+        <span class="s3">return </span><span class="s4">&amp;</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getPaciente</span><span class="s4">();</span>
+    <span class="s4">}</span>
+
+    <span class="s3">const </span><span class="s1">Paciente</span><span class="s4">* </span><span class="s1">encontrado </span><span class="s4">= </span><span class="s1">buscarPorNombre</span><span class="s4">(</span>
+        <span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">(),</span>
+        <span class="s1">nombre</span>
+    <span class="s4">);</span>
+
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">encontrado </span><span class="s4">!= </span><span class="s3">nullptr</span><span class="s4">) {</span>
+        <span class="s3">return </span><span class="s1">encontrado</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s3">return </span><span class="s1">buscarPorNombre</span><span class="s4">(</span>
+        <span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">(),</span>
+        <span class="s1">nombre</span>
+    <span class="s4">);</span>
+<span class="s4">}</span>
+
+<span class="s5">// ========================================</span>
+<span class="s5">// ENCONTRAR EL MENOR NODO</span>
+<span class="s5">// ========================================</span>
+
+<span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">AVL::minimo</span><span class="s4">(</span><span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">nodo</span><span class="s4">) </span><span class="s3">const </span><span class="s4">{</span>
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">nodo </span><span class="s4">== </span><span class="s3">nullptr</span><span class="s4">) {</span>
+        <span class="s3">return nullptr</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s3">while </span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">() != </span><span class="s3">nullptr</span><span class="s4">) {</span>
+        <span class="s1">nodo </span><span class="s4">= </span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">();</span>
+    <span class="s4">}</span>
+
+    <span class="s3">return </span><span class="s1">nodo</span><span class="s4">;</span>
+<span class="s4">}</span>
+
+<span class="s5">// ========================================</span>
+<span class="s5">// ELIMINAR POR ID</span>
+<span class="s5">// ========================================</span>
+
+<span class="s3">bool </span><span class="s1">AVL::eliminarPorId</span><span class="s4">(</span><span class="s3">const </span><span class="s1">string</span><span class="s4">&amp; </span><span class="s1">id</span><span class="s4">) {</span>
+    <span class="s3">bool </span><span class="s1">eliminado </span><span class="s4">= </span><span class="s3">false</span><span class="s4">;</span>
+
+    <span class="s1">raiz </span><span class="s4">= </span><span class="s1">eliminar</span><span class="s4">(</span><span class="s1">raiz</span><span class="s4">, </span><span class="s1">id</span><span class="s4">, </span><span class="s1">eliminado</span><span class="s4">);</span>
+
+    <span class="s3">return </span><span class="s1">eliminado</span><span class="s4">;</span>
+<span class="s4">}</span>
+
+<span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">AVL::eliminar</span><span class="s4">(</span>
+    <span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">nodo</span><span class="s4">,</span>
+    <span class="s3">const </span><span class="s1">string</span><span class="s4">&amp; </span><span class="s1">id</span><span class="s4">,</span>
+    <span class="s3">bool</span><span class="s4">&amp; </span><span class="s1">eliminado</span>
+<span class="s4">) {</span>
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">nodo </span><span class="s4">== </span><span class="s3">nullptr</span><span class="s4">) {</span>
+        <span class="s3">return nullptr</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s1">string idActual </span><span class="s4">= </span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getPaciente</span><span class="s4">().</span><span class="s1">getId</span><span class="s4">();</span>
+
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">id </span><span class="s4">&lt; </span><span class="s1">idActual</span><span class="s4">) {</span>
+        <span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">setIzquierdo</span><span class="s4">(</span>
+            <span class="s1">eliminar</span><span class="s4">(</span>
+                <span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">(),</span>
+                <span class="s1">id</span><span class="s4">,</span>
+                <span class="s1">eliminado</span>
+            <span class="s4">)</span>
+        <span class="s4">);</span>
+    <span class="s4">}</span>
+    <span class="s3">else if </span><span class="s4">(</span><span class="s1">id </span><span class="s4">&gt; </span><span class="s1">idActual</span><span class="s4">) {</span>
+        <span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">setDerecho</span><span class="s4">(</span>
+            <span class="s1">eliminar</span><span class="s4">(</span>
+                <span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">(),</span>
+                <span class="s1">id</span><span class="s4">,</span>
+                <span class="s1">eliminado</span>
+            <span class="s4">)</span>
+        <span class="s4">);</span>
+    <span class="s4">}</span>
+    <span class="s3">else </span><span class="s4">{</span>
+        <span class="s1">eliminado </span><span class="s4">= </span><span class="s3">true</span><span class="s4">;</span>
+
+        <span class="s5">// Caso 1: no tiene hijo izquierdo</span>
+        <span class="s3">if </span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">() == </span><span class="s3">nullptr</span><span class="s4">) {</span>
+            <span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">derecho </span><span class="s4">= </span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">();</span>
+
+            <span class="s3">delete </span><span class="s1">nodo</span><span class="s4">;</span>
+
+            <span class="s3">return </span><span class="s1">derecho</span><span class="s4">;</span>
+        <span class="s4">}</span>
+
+        <span class="s5">// Caso 2: no tiene hijo derecho</span>
+        <span class="s3">if </span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">() == </span><span class="s3">nullptr</span><span class="s4">) {</span>
+            <span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">izquierdo </span><span class="s4">= </span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">();</span>
+
+            <span class="s3">delete </span><span class="s1">nodo</span><span class="s4">;</span>
+
+            <span class="s3">return </span><span class="s1">izquierdo</span><span class="s4">;</span>
+        <span class="s4">}</span>
+
+        <span class="s5">// Caso 3: tiene dos hijos.</span>
+        <span class="s5">// Se reemplaza por el menor del subárbol derecho.</span>
+        <span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">sucesor </span><span class="s4">= </span><span class="s1">minimo</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">());</span>
+
+        <span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">setPaciente</span><span class="s4">(</span><span class="s1">sucesor</span><span class="s4">-&gt;</span><span class="s1">getPaciente</span><span class="s4">());</span>
+
+        <span class="s3">bool </span><span class="s1">eliminadoSucesor </span><span class="s4">= </span><span class="s3">false</span><span class="s4">;</span>
+
+        <span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">setDerecho</span><span class="s4">(</span>
+            <span class="s1">eliminar</span><span class="s4">(</span>
+                <span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">(),</span>
+                <span class="s1">sucesor</span><span class="s4">-&gt;</span><span class="s1">getPaciente</span><span class="s4">().</span><span class="s1">getId</span><span class="s4">(),</span>
+                <span class="s1">eliminadoSucesor</span>
+            <span class="s4">)</span>
+        <span class="s4">);</span>
+    <span class="s4">}</span>
+
+    <span class="s3">return </span><span class="s1">balancear</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">);</span>
+<span class="s4">}</span>
+
+<span class="s5">// ========================================</span>
+<span class="s5">// COMPROBAR SI ESTA VACIO</span>
+<span class="s5">// ========================================</span>
+
+<span class="s3">bool </span><span class="s1">AVL::empty</span><span class="s4">() </span><span class="s3">const </span><span class="s4">{</span>
+    <span class="s3">return </span><span class="s1">raiz </span><span class="s4">== </span><span class="s3">nullptr</span><span class="s4">;</span>
+<span class="s4">}</span>
+
+<span class="s5">// ========================================</span>
+<span class="s5">// ALTURA DEL ARBOL COMPLETO</span>
+<span class="s5">// ========================================</span>
+
+<span class="s3">int </span><span class="s1">AVL::altura</span><span class="s4">() </span><span class="s3">const </span><span class="s4">{</span>
+    <span class="s3">return </span><span class="s1">altura</span><span class="s4">(</span><span class="s1">raiz</span><span class="s4">);</span>
+<span class="s4">}</span>
+
+<span class="s5">// ========================================</span>
+<span class="s5">// FACTOR DE BALANCE DE LA RAIZ</span>
+<span class="s5">// ========================================</span>
+
+<span class="s3">int </span><span class="s1">AVL::factorBalance</span><span class="s4">() </span><span class="s3">const </span><span class="s4">{</span>
+    <span class="s3">return </span><span class="s1">factorBalance</span><span class="s4">(</span><span class="s1">raiz</span><span class="s4">);</span>
+<span class="s4">}</span>
+
+<span class="s5">// ========================================</span>
+<span class="s5">// RECORRIDO INORDEN</span>
+<span class="s5">// Izquierda - Raíz - Derecha</span>
+<span class="s5">// ========================================</span>
+
+<span class="s3">void </span><span class="s1">AVL::inorden</span><span class="s4">() </span><span class="s3">const </span><span class="s4">{</span>
+    <span class="s1">inorden</span><span class="s4">(</span><span class="s1">raiz</span><span class="s4">);</span>
+<span class="s4">}</span>
+
+<span class="s3">void </span><span class="s1">AVL::inorden</span><span class="s4">(</span><span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">nodo</span><span class="s4">) </span><span class="s3">const </span><span class="s4">{</span>
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">nodo </span><span class="s4">== </span><span class="s3">nullptr</span><span class="s4">) {</span>
+        <span class="s3">return</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s1">inorden</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">());</span>
+
+    <span class="s3">const </span><span class="s1">Paciente</span><span class="s4">&amp; </span><span class="s1">paciente </span><span class="s4">= </span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getPaciente</span><span class="s4">();</span>
+
+    <span class="s1">cout </span><span class="s4">&lt;&lt; </span><span class="s1">paciente</span><span class="s4">.</span><span class="s1">getId</span><span class="s4">()</span>
+         <span class="s4">&lt;&lt; </span><span class="s2">&quot; - &quot;</span>
+         <span class="s4">&lt;&lt; </span><span class="s1">paciente</span><span class="s4">.</span><span class="s1">getNombre</span><span class="s4">()</span>
+         <span class="s4">&lt;&lt; </span><span class="s2">&quot; (&quot;</span>
+         <span class="s4">&lt;&lt; </span><span class="s1">paciente</span><span class="s4">.</span><span class="s1">getEdad</span><span class="s4">()</span>
+         <span class="s4">&lt;&lt; </span><span class="s2">&quot;)&quot;</span>
+         <span class="s4">&lt;&lt; </span><span class="s1">endl</span><span class="s4">;</span>
+
+    <span class="s1">inorden</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">());</span>
+<span class="s4">}</span>
+
+<span class="s5">// ========================================</span>
+<span class="s5">// RECORRIDO PREORDEN</span>
+<span class="s5">// Raíz - Izquierda - Derecha</span>
+<span class="s5">// ========================================</span>
+
+<span class="s3">void </span><span class="s1">AVL::preorden</span><span class="s4">() </span><span class="s3">const </span><span class="s4">{</span>
+    <span class="s1">preorden</span><span class="s4">(</span><span class="s1">raiz</span><span class="s4">);</span>
+<span class="s4">}</span>
+
+<span class="s3">void </span><span class="s1">AVL::preorden</span><span class="s4">(</span><span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">nodo</span><span class="s4">) </span><span class="s3">const </span><span class="s4">{</span>
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">nodo </span><span class="s4">== </span><span class="s3">nullptr</span><span class="s4">) {</span>
+        <span class="s3">return</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s3">const </span><span class="s1">Paciente</span><span class="s4">&amp; </span><span class="s1">paciente </span><span class="s4">= </span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getPaciente</span><span class="s4">();</span>
+
+    <span class="s1">cout </span><span class="s4">&lt;&lt; </span><span class="s1">paciente</span><span class="s4">.</span><span class="s1">getId</span><span class="s4">()</span>
+         <span class="s4">&lt;&lt; </span><span class="s2">&quot; - &quot;</span>
+         <span class="s4">&lt;&lt; </span><span class="s1">paciente</span><span class="s4">.</span><span class="s1">getNombre</span><span class="s4">()</span>
+         <span class="s4">&lt;&lt; </span><span class="s2">&quot; (&quot;</span>
+         <span class="s4">&lt;&lt; </span><span class="s1">paciente</span><span class="s4">.</span><span class="s1">getEdad</span><span class="s4">()</span>
+         <span class="s4">&lt;&lt; </span><span class="s2">&quot;)&quot;</span>
+         <span class="s4">&lt;&lt; </span><span class="s1">endl</span><span class="s4">;</span>
+
+    <span class="s1">preorden</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">());</span>
+    <span class="s1">preorden</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">());</span>
+<span class="s4">}</span>
+
+<span class="s5">// ========================================</span>
+<span class="s5">// RECORRIDO POSTORDEN</span>
+<span class="s5">// Izquierda - Derecha - Raíz</span>
+<span class="s5">// ========================================</span>
+
+<span class="s3">void </span><span class="s1">AVL::postorden</span><span class="s4">() </span><span class="s3">const </span><span class="s4">{</span>
+    <span class="s1">postorden</span><span class="s4">(</span><span class="s1">raiz</span><span class="s4">);</span>
+<span class="s4">}</span>
+
+<span class="s3">void </span><span class="s1">AVL::postorden</span><span class="s4">(</span><span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">nodo</span><span class="s4">) </span><span class="s3">const </span><span class="s4">{</span>
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">nodo </span><span class="s4">== </span><span class="s3">nullptr</span><span class="s4">) {</span>
+        <span class="s3">return</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s1">postorden</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">());</span>
+    <span class="s1">postorden</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">());</span>
+
+    <span class="s3">const </span><span class="s1">Paciente</span><span class="s4">&amp; </span><span class="s1">paciente </span><span class="s4">= </span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getPaciente</span><span class="s4">();</span>
+
+    <span class="s1">cout </span><span class="s4">&lt;&lt; </span><span class="s1">paciente</span><span class="s4">.</span><span class="s1">getId</span><span class="s4">()</span>
+         <span class="s4">&lt;&lt; </span><span class="s2">&quot; - &quot;</span>
+         <span class="s4">&lt;&lt; </span><span class="s1">paciente</span><span class="s4">.</span><span class="s1">getNombre</span><span class="s4">()</span>
+         <span class="s4">&lt;&lt; </span><span class="s2">&quot; (&quot;</span>
+         <span class="s4">&lt;&lt; </span><span class="s1">paciente</span><span class="s4">.</span><span class="s1">getEdad</span><span class="s4">()</span>
+         <span class="s4">&lt;&lt; </span><span class="s2">&quot;)&quot;</span>
+         <span class="s4">&lt;&lt; </span><span class="s1">endl</span><span class="s4">;</span>
+<span class="s4">}</span>
+
+<span class="s5">// ========================================</span>
+<span class="s5">// MOSTRAR FACTORES DE BALANCE</span>
+<span class="s5">// ========================================</span>
+
+<span class="s3">void </span><span class="s1">AVL::mostrarFactoresBalance</span><span class="s4">() </span><span class="s3">const </span><span class="s4">{</span>
+    <span class="s1">mostrarFactoresBalance</span><span class="s4">(</span><span class="s1">raiz</span><span class="s4">);</span>
+<span class="s4">}</span>
+
+<span class="s3">void </span><span class="s1">AVL::mostrarFactoresBalance</span><span class="s4">(</span><span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">nodo</span><span class="s4">) </span><span class="s3">const </span><span class="s4">{</span>
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">nodo </span><span class="s4">== </span><span class="s3">nullptr</span><span class="s4">) {</span>
+        <span class="s3">return</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s1">mostrarFactoresBalance</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">());</span>
+
+    <span class="s1">cout </span><span class="s4">&lt;&lt; </span><span class="s2">&quot;ID: &quot;</span>
+         <span class="s4">&lt;&lt; </span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getPaciente</span><span class="s4">().</span><span class="s1">getId</span><span class="s4">()</span>
+         <span class="s4">&lt;&lt; </span><span class="s2">&quot; | Factor de balance: &quot;</span>
+         <span class="s4">&lt;&lt; </span><span class="s1">factorBalance</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">)</span>
+         <span class="s4">&lt;&lt; </span><span class="s1">endl</span><span class="s4">;</span>
+
+    <span class="s1">mostrarFactoresBalance</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">());</span>
+<span class="s4">}</span>
+
+<span class="s5">// ========================================</span>
+<span class="s5">// COPIAR UN ARBOL COMPLETO</span>
+<span class="s5">// ========================================</span>
+
+<span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">AVL::copiar</span><span class="s4">(</span><span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">nodo</span><span class="s4">) </span><span class="s3">const </span><span class="s4">{</span>
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">nodo </span><span class="s4">== </span><span class="s3">nullptr</span><span class="s4">) {</span>
+        <span class="s3">return nullptr</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">nuevo </span><span class="s4">= </span><span class="s3">new </span><span class="s1">NodoAVL</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getPaciente</span><span class="s4">());</span>
+
+    <span class="s1">nuevo</span><span class="s4">-&gt;</span><span class="s1">setAltura</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getAltura</span><span class="s4">());</span>
+
+    <span class="s3">try </span><span class="s4">{</span>
+        <span class="s1">nuevo</span><span class="s4">-&gt;</span><span class="s1">setIzquierdo</span><span class="s4">(</span>
+            <span class="s1">copiar</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">())</span>
+        <span class="s4">);</span>
+
+        <span class="s1">nuevo</span><span class="s4">-&gt;</span><span class="s1">setDerecho</span><span class="s4">(</span>
+            <span class="s1">copiar</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">())</span>
+        <span class="s4">);</span>
+    <span class="s4">}</span>
+    <span class="s3">catch </span><span class="s4">(</span><span class="s1">...</span><span class="s4">) {</span>
+        <span class="s1">liberar</span><span class="s4">(</span><span class="s1">nuevo</span><span class="s4">);</span>
+        <span class="s3">throw</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s3">return </span><span class="s1">nuevo</span><span class="s4">;</span>
+<span class="s4">}</span>
+
+<span class="s5">// ========================================</span>
+<span class="s5">// LIBERAR TODOS LOS NODOS</span>
+<span class="s5">// ========================================</span>
+
+<span class="s3">void </span><span class="s1">AVL::liberar</span><span class="s4">(</span><span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">nodo</span><span class="s4">) </span><span class="s3">const</span><span class="s4">{</span>
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">nodo </span><span class="s4">== </span><span class="s3">nullptr</span><span class="s4">) {</span>
+        <span class="s3">return</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s1">liberar</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">());</span>
+    <span class="s1">liberar</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">());</span>
+
+    <span class="s3">delete </span><span class="s1">nodo</span><span class="s4">;</span>
+<span class="s4">}</span>
+
+<span class="s5">// ========================================</span>
+<span class="s5">// VACIAR EL ARBOL</span>
+<span class="s5">// ========================================</span>
+
+<span class="s3">void </span><span class="s1">AVL::clear</span><span class="s4">() {</span>
+    <span class="s1">liberar</span><span class="s4">(</span><span class="s1">raiz</span><span class="s4">);</span>
+    <span class="s1">raiz </span><span class="s4">= </span><span class="s3">nullptr</span><span class="s4">;</span>
+<span class="s4">}</span>
+
+
+<span class="s3">void </span><span class="s1">AVL::mostrarResumen</span><span class="s4">() </span><span class="s3">const </span><span class="s4">{</span>
+    <span class="s3">bool </span><span class="s1">primero </span><span class="s4">= </span><span class="s3">true</span><span class="s4">;</span>
+    <span class="s1">mostrarResumen</span><span class="s4">(</span><span class="s1">raiz</span><span class="s4">, </span><span class="s1">primero</span><span class="s4">);</span>
+<span class="s4">}</span>
+
+<span class="s3">void </span><span class="s1">AVL::mostrarResumen</span><span class="s4">(</span>
+    <span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">nodo</span><span class="s4">,</span>
+    <span class="s3">bool</span><span class="s4">&amp; </span><span class="s1">primero</span>
+<span class="s4">) </span><span class="s3">const </span><span class="s4">{</span>
+    <span class="s3">if </span><span class="s4">(</span><span class="s1">nodo </span><span class="s4">== </span><span class="s3">nullptr</span><span class="s4">) {</span>
+        <span class="s3">return</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s1">mostrarResumen</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">(), </span><span class="s1">primero</span><span class="s4">);</span>
+
+    <span class="s3">if </span><span class="s4">(!</span><span class="s1">primero</span><span class="s4">) {</span>
+        <span class="s1">cout </span><span class="s4">&lt;&lt; </span><span class="s2">&quot;, &quot;</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s3">const </span><span class="s1">Paciente</span><span class="s4">&amp; </span><span class="s1">paciente </span><span class="s4">= </span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getPaciente</span><span class="s4">();</span>
+
+    <span class="s1">cout </span><span class="s4">&lt;&lt; </span><span class="s1">paciente</span><span class="s4">.</span><span class="s1">getNombre</span><span class="s4">()</span>
+         <span class="s4">&lt;&lt; </span><span class="s2">&quot; (&quot; </span><span class="s4">&lt;&lt; </span><span class="s1">paciente</span><span class="s4">.</span><span class="s1">getId</span><span class="s4">() &lt;&lt; </span><span class="s2">&quot;)&quot;</span><span class="s4">;</span>
+
+    <span class="s1">primero </span><span class="s4">= </span><span class="s3">false</span><span class="s4">;</span>
+
+    <span class="s1">mostrarResumen</span><span class="s4">(</span><span class="s1">nodo</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">(), </span><span class="s1">primero</span><span class="s4">);</span>
+<span class="s4">}</span>
+
+<span class="s1">string AVL::rutaBusquedaPorId</span><span class="s4">(</span><span class="s3">const </span><span class="s1">string</span><span class="s4">&amp; </span><span class="s1">id</span><span class="s4">) </span><span class="s3">const </span><span class="s4">{</span>
+    <span class="s1">NodoAVL</span><span class="s4">* </span><span class="s1">cursor </span><span class="s4">= </span><span class="s1">raiz</span><span class="s4">;</span>
+    <span class="s1">string ruta</span><span class="s4">;</span>
+
+    <span class="s3">while </span><span class="s4">(</span><span class="s1">cursor </span><span class="s4">!= </span><span class="s3">nullptr</span><span class="s4">) {</span>
+        <span class="s3">if </span><span class="s4">(!</span><span class="s1">ruta</span><span class="s4">.</span><span class="s1">empty</span><span class="s4">()) {</span>
+            <span class="s1">ruta </span><span class="s4">+= </span><span class="s2">&quot; -&gt; &quot;</span><span class="s4">;</span>
+        <span class="s4">}</span>
+
+        <span class="s1">ruta </span><span class="s4">+= </span><span class="s1">cursor</span><span class="s4">-&gt;</span><span class="s1">getPaciente</span><span class="s4">().</span><span class="s1">getId</span><span class="s4">();</span>
+
+        <span class="s1">string idActual </span><span class="s4">= </span><span class="s1">cursor</span><span class="s4">-&gt;</span><span class="s1">getPaciente</span><span class="s4">().</span><span class="s1">getId</span><span class="s4">();</span>
+
+        <span class="s3">if </span><span class="s4">(</span><span class="s1">id </span><span class="s4">== </span><span class="s1">idActual</span><span class="s4">) {</span>
+            <span class="s3">return </span><span class="s1">ruta</span><span class="s4">;</span>
+        <span class="s4">}</span>
+
+        <span class="s3">if </span><span class="s4">(</span><span class="s1">id </span><span class="s4">&lt; </span><span class="s1">idActual</span><span class="s4">) {</span>
+            <span class="s1">cursor </span><span class="s4">= </span><span class="s1">cursor</span><span class="s4">-&gt;</span><span class="s1">getIzquierdo</span><span class="s4">();</span>
+        <span class="s4">}</span>
+        <span class="s3">else </span><span class="s4">{</span>
+            <span class="s1">cursor </span><span class="s4">= </span><span class="s1">cursor</span><span class="s4">-&gt;</span><span class="s1">getDerecho</span><span class="s4">();</span>
+        <span class="s4">}</span>
+    <span class="s4">}</span>
+
+    <span class="s3">return </span><span class="s2">&quot;&quot;</span><span class="s4">;</span>
+<span class="s4">}</span></pre>
+</body>
+</html>

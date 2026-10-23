@@ -1,0 +1,4 @@
+001;Juan Perez;25;37.0;120;3;otro;0;0;0;0
+002;Maria Soto;12;37.2;100;2;cabeza;0;0;0;0
+003;Pedro Rojas;45;39.0;140;9;pecho;0;0;0;3
+004;Ana Lopez;32;36.8;115;5;extremidad;1;0;1;0
