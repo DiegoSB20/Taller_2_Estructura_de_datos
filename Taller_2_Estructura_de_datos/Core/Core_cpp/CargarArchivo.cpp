@@ -1,4 +1,5 @@
 #include "../Core_h//CargarArchivo.hpp"
+#include <filesystem>
 
 #include <iostream>
 #include <fstream>
@@ -168,14 +169,20 @@ vector<string> CargaArchivo::separarCampos(
 bool CargaArchivo::cargarPacientes(
     Queue<Paciente>& colaPacientes
 ) {
+    cout << "Ruta recibida: " << rutaArchivo << endl;
+    cout << "Directorio actual: "
+         << filesystem::current_path() << endl;
+
+
     ifstream archivo(rutaArchivo);
 
     if (!archivo.is_open()) {
-        //cout << "Error: no se pudo abrir el archivo: "
-        //     << rutaArchivo << endl;
-
+        cout << "ERROR: no se pudo abrir: "
+             << rutaArchivo << endl;
         return false;
     }
+
+     cout << "Archivo abierto correctamente." << endl;
 
     string linea;
     int numeroLinea = 0;

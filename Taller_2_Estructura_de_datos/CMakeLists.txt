@@ -1,9 +1,10 @@
-cmake_minimum_required(VERSION 4.2)
-project(Taller_2_Estructura_de_datos)
+cmake_minimum_required(VERSION 3.16)
+project(Taller_2_Estructura_de_datos_prueba)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(Taller_2_Estructura_de_datos main.cpp
+add_executable(Taller_2_Estructura_de_datos_prueba main.cpp
         Data_structures/Data_structures_h/Node.hpp
       
         Data_structures/Data_structures_h/Queue.hpp

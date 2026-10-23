@@ -1,4 +1,4 @@
-#include "../Clases_h//Paciente.hpp"
+#include "../Clases_h/Paciente.hpp"
 #include <iostream>
 
 using namespace std;

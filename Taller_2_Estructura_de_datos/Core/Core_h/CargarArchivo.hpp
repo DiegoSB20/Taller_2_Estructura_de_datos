@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "../../data_structures/Data_structures_h//Queue.hpp"
+#include "../../Data_structures/Data_structures_h//Queue.hpp"
 #include "../../Clases/Clases_h//Paciente.hpp"
 
 using namespace std;

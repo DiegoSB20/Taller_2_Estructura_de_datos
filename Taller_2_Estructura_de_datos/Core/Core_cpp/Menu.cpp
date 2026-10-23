@@ -21,10 +21,10 @@ void Menu::mostrarMenuPrincipal() {
 }
 
 void Menu::iniciar() {
-    bool cargado = sistema.cargarDatos("pacientes.txt");
+    bool cargado = sistema.cargarDatos("Pacientes.txt");
 
     if (!cargado) {
-        cargado = sistema.cargarDatos("../pacientes.txt");
+        cargado = sistema.cargarDatos("../Pacientes.txt");
     }
 
     if (!cargado) {

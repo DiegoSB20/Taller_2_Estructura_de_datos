@@ -2,16 +2,16 @@
 
 #include <string>
 
-#include "../../data_structures/Data_structures_h//Queue.hpp"
-#include "../../data_structures/Data_structures_h//Stack.hpp"
-#include "../../data_structures/Data_structures_h//List.hpp"
-#include "../../data_structures/Data_structures_h//ArbolDecision.hpp"
+#include "../../Data_structures/Data_structures_h/Queue.hpp"
+#include "../../Data_structures/Data_structures_h/Stack.hpp"
+#include "../../Data_structures/Data_structures_h/List.hpp"
+#include "../../Data_structures/Data_structures_h/ArbolDecision.hpp"
 
-#include "../../Clases/Clases_h//Paciente.hpp"
-#include "../../Clases/Clases_h//Atencion.hpp"
-#include "../../Clases/Clases_h//Servicio.hpp"
+#include "../../Clases/Clases_h/Paciente.hpp"
+#include "../../Clases/Clases_h/Atencion.hpp"
+#include "../../Clases/Clases_h/Servicio.hpp"
 
-#include "CargaRArchivo.hpp"
+#include "CargarArchivo.hpp"
 
 using namespace std;
 
